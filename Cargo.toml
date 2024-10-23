@@ -1,0 +1,8 @@
+[package]
+name = "zapret_preconfigs_tester"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sysinfo = "0.32.0"
+config = "0.14.1"
