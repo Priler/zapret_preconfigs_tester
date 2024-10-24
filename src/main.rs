@@ -21,7 +21,7 @@ const DOMAIN_LIST: &[(&str, &str)] = &[
     ("1", "discord.com"),
     ("2", "youtube.com"),
     ("3", "spotify.com"),
-    ("4", "tiktok.com"),
+    ("4", "speedtest.net"),
     ("5", "custom")
 ];
 
@@ -98,12 +98,14 @@ fn is_elevated() -> bool {
 fn request_elevation() -> io::Result<()> {
     let executable = std::env::current_exe()?;
     if let Some(executable) = executable.to_str() {
+        // Enclose the path in double quotes
+        let quoted_executable = format!("\"{}\"", executable);
         Command::new("powershell")
             .args(&[
                 "Start-Process",
-                executable,
+                &quoted_executable,
                 "-Verb",
-                "RunAs"
+                "RunAs",
             ])
             .spawn()?;
     }
@@ -209,7 +211,7 @@ fn run_bypass_check(
                 .and_then(|name| name.to_str())
                 .unwrap_or("неизвестный");
 
-            println!("!!!!!!!!!!!!!\n\n[УСПЕХ] Кажется, вам подходит этот пре-конфиг - {}\n!!!!!!!!!!!!!\n\n", filename);
+            println!("\n!!!!!!!!!!!!!\n[УСПЕХ] Кажется, вам подходит этот пре-конфиг - {}\n!!!!!!!!!!!!!\n\n", filename);
             process_manager.cleanup_process(&mut child, &config.process_name)?;
             success = true;
             break;
