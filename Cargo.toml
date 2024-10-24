@@ -1,8 +1,17 @@
 [package]
 name = "zapret_preconfigs_tester"
+description = "Утилита для тестирования пре-конфигов Zapret"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["Abraham Tugalov <priler96@gmail.com>"]
 
 [dependencies]
 sysinfo = "0.32.0"
 config = "0.14.1"
+winresource = "0.1.17"
+native-tls = "0.2.12"
+ureq = "2.10.1"
+
+[build-dependencies]
+winresource = "0.1.17"
