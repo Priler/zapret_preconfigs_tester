@@ -28,8 +28,15 @@ impl NetworkChecker {
     }
 
     pub fn test_connection(&self, target: &str) -> AppResult<bool> {
+        // Add a small delay before testing to ensure previous connection is fully closed
+        std::thread::sleep(std::time::Duration::from_millis(1000));
+
         let domain = target.split(':').next().unwrap_or(target);
         let result = self.try_connect(domain)?;
+
+        // Add another delay after testing to ensure connection cleanup
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
         Ok(result == ConnectionResult::Success)
     }
 
@@ -49,8 +56,17 @@ impl NetworkChecker {
         let url = format!("https://{}", domain);
         println!("DEBUG: Trying to connect to {}...", url);
 
+        // Create a new agent for each connection attempt to avoid connection reuse
+        let agent = AgentBuilder::new()
+            .timeout_read(self.timeout)
+            .timeout_write(self.timeout)
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+            .try_proxy_from_env(false)
+            .redirects(4)
+            .build();
+
         // Build a request with browser-like headers
-        let request = self.agent.get(&url)
+        let request = agent.get(&url)
             // Common headers
             .set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
             .set("Accept-Language", "en-US,en;q=0.9")

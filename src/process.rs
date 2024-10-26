@@ -43,7 +43,7 @@ impl ProcessManager {
     pub fn cleanup_process(&mut self, child: &mut Child, process_name: &str) -> AppResult<()> {
         // First try to kill the child process
         let _ = child.kill();
-        sleep(Duration::from_millis(100));
+        sleep(Duration::from_millis(500));
 
         // Then ensure the named process is terminated
         self.ensure_process_terminated(process_name);
@@ -67,7 +67,7 @@ impl ProcessManager {
                 let _ = process.kill();
             }
 
-            sleep(Duration::from_millis(100));  // Wait a bit before checking again
+            sleep(Duration::from_millis(200));  // Wait a bit before checking again
         }
     }
 

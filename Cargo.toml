@@ -1,7 +1,7 @@
 [package]
 name = "zapret_preconfigs_tester"
 description = "Утилита для тестирования пре-конфигов Zapret"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 authors = ["Abraham Tugalov <priler96@gmail.com>"]
@@ -13,6 +13,7 @@ winresource = "0.1.17"
 native-tls = "0.2.12"
 ureq = { version = "2.10.1", features = ["tls"] }
 winapi = { version = "0.3.9", features = ["processthreadsapi", "securitybaseapi", "winnt"] }
+termcolor = "1.4.1"
 
 [build-dependencies]
 winresource = "0.1.17"

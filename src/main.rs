@@ -25,6 +25,8 @@ use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
 use winapi::um::handleapi::CloseHandle;
 use std::mem::MaybeUninit;
 
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+
 struct TokenHandle(*mut winapi::ctypes::c_void);
 
 impl Drop for TokenHandle {
@@ -43,6 +45,12 @@ const DOMAIN_LIST: &[(&str, &str)] = &[
     ("4", "speedtest.net"),
     ("5", "custom")
 ];
+
+const ORANGE: Color = Color::Rgb(252, 197, 108);
+const GREEN: Color = Color::Rgb(126, 176, 0);
+const BLUE: Color = Color::Rgb(87, 170, 247);
+const MAGENTA: Color = Color::Rgb(196, 124, 186);
+const RED: Color = Color::Rgb(214, 77, 91);
 
 fn is_valid_domain(domain: &str) -> bool {
     if domain.is_empty() || domain.len() > 255 {
@@ -175,7 +183,7 @@ fn request_elevation() -> io::Result<()> {
         match &spawn_result {
             Ok(_) => {
                 // Small delay to ensure the new process has started
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                std::thread::sleep(std::time::Duration::from_millis(300));
                 Ok(())
             },
             Err(e) => {
@@ -252,6 +260,8 @@ fn run_bypass_check(
     mut process_manager: ProcessManager,
     network_checker: &NetworkChecker,
 ) -> AppResult<()> {
+    let mut stdout = StandardStream::stdout(ColorChoice::Always);
+
     let batch_files = config.get_batch_files()?;
     let mut success = false;
 
@@ -285,7 +295,12 @@ fn run_bypass_check(
     }
 
     for batch_file in batch_files {
-        println!("Запуск пре-конфига: {}", batch_file.display());
+        stdout.set_color(ColorSpec::new().set_fg(Some(MAGENTA))).unwrap();
+        println!("\nЗапуск пре-конфига: {}", batch_file.display());
+        stdout.set_color(ColorSpec::new().set_fg(Some(Color::White))).unwrap();
+
+        // before testing new batch file, ensure there's no winws.exe running in background
+        process_manager.ensure_process_terminated(&config.process_name);
 
         let mut child = match process_manager.run_batch_file(&batch_file) {
             Ok(child) => child,
@@ -312,14 +327,18 @@ fn run_bypass_check(
                 .and_then(|name| name.to_str())
                 .unwrap_or("неизвестный");
 
-            println!("\n!!!!!!!!!!!!!\n[УСПЕХ] Кажется, вам подходит этот пре-конфиг - {}\n!!!!!!!!!!!!!\n\n", filename);
+            stdout.set_color(ColorSpec::new().set_fg(Some(GREEN))).unwrap();
+            println!("{}", format!("\n!!!!!!!!!!!!!\n[УСПЕХ] Кажется, вам подходит этот пре-конфиг - {}\n!!!!!!!!!!!!!\n", filename));
             process_manager.cleanup_process(&mut child, &config.process_name)?;
+            stdout.set_color(ColorSpec::new().set_fg(Some(Color::White))).unwrap();
             success = true;
-            break;
+            // break; // try every pre-config
+            // sleep(Duration::from_millis(3000));
         } else {
-            println!("[ПРОВАЛ] Не удалось установить соединение используя пре-конфиг: {}",
-                     batch_file.display());
+            stdout.set_color(ColorSpec::new().set_fg(Some(RED))).unwrap();
+            println!("{}", format!("[ПРОВАЛ] Не удалось установить соединение используя пре-конфиг: {}", batch_file.display()));
             process_manager.cleanup_process(&mut child, &config.process_name)?;
+            stdout.set_color(ColorSpec::new().set_fg(Some(Color::White))).unwrap();
             continue;
         }
     }
